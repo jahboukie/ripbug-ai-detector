@@ -217,7 +217,7 @@ export class GitManager {
       }
 
       const log = await this.git.log({ maxCount: count });
-      return log.all;
+      return [...log.all];
 
     } catch (error) {
       throw new Error(`Failed to get recent commits: ${error instanceof Error ? error.message : 'Unknown error'}`);

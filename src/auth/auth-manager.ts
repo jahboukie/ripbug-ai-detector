@@ -17,7 +17,7 @@ interface AuthData {
 interface LoginResult {
   user: {
     email: string;
-    plan: string;
+    plan: 'free' | 'pro' | 'team' | 'enterprise';
     id: string;
   };
   limits: {
@@ -31,7 +31,7 @@ interface AuthStatus {
   licenseKey?: string;
   user?: {
     email: string;
-    plan: string;
+    plan: 'free' | 'pro' | 'team' | 'enterprise';
     id: string;
   };
   usage?: {

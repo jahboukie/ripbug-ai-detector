@@ -1,4 +1,4 @@
-import { ASTParser } from '../analysis/ast-parser';
+import { SimpleParser } from '../analysis/simple-parser';
 import { FileUtils } from '../utils/file-utils';
 import { Issue, FunctionInfo, AffectedFile } from '../types/analysis';
 import path from 'path';
@@ -11,10 +11,10 @@ interface FunctionChange {
 }
 
 export class FunctionSignatureDetector {
-  private parser: ASTParser;
+  private parser: SimpleParser;
 
   constructor() {
-    this.parser = new ASTParser();
+    this.parser = new SimpleParser();
   }
 
   // Main detection method
@@ -23,7 +23,7 @@ export class FunctionSignatureDetector {
 
     for (const file of files) {
       try {
-        const fileIssues = await this.analyzeFile(file);
+        const fileIssues = await this.analyzeFile(file, files);
         issues.push(...fileIssues);
       } catch (error) {
         // Skip files that can't be parsed
@@ -35,7 +35,7 @@ export class FunctionSignatureDetector {
   }
 
   // Analyze a single file for function signature changes
-  private async analyzeFile(filePath: string): Promise<Issue[]> {
+  private async analyzeFile(filePath: string, allFiles: string[]): Promise<Issue[]> {
     const issues: Issue[] = [];
 
     // Read current file content
@@ -45,8 +45,7 @@ export class FunctionSignatureDetector {
     }
 
     // Parse current version
-    const currentTree = this.parser.parseFile(fileInfo.content, fileInfo.isTypeScript);
-    const currentFunctions = this.parser.extractFunctions(currentTree, filePath);
+    const currentFunctions = this.parser.extractFunctions(fileInfo.content, filePath);
 
     // For MVP, we'll simulate "old" version by checking git diff
     // In a full implementation, we'd compare with git HEAD
@@ -54,7 +53,7 @@ export class FunctionSignatureDetector {
 
     // For each changed function, find call sites
     for (const change of changes) {
-      const affectedFiles = await this.findCallSites(change.newFunction, files);
+      const affectedFiles = await this.findCallSites(change.newFunction, allFiles);
       
       if (affectedFiles.length > 0) {
         const issue: Issue = {
@@ -149,8 +148,7 @@ export class FunctionSignatureDetector {
         const fileInfo = await FileUtils.getFileInfo(file);
         if (!fileInfo.isJavaScript) continue;
 
-        const tree = this.parser.parseFile(fileInfo.content, fileInfo.isTypeScript);
-        const calls = this.parser.extractFunctionCalls(tree, file);
+        const calls = this.parser.extractFunctionCalls(fileInfo.content, file);
 
         // Find calls to our function
         const matchingCalls = calls.filter(call => call.name === func.name);

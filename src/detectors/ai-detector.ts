@@ -1,12 +1,12 @@
 import { AIDetectionResult, AIPattern } from '../types/analysis';
 import { FileUtils } from '../utils/file-utils';
-import { ASTParser } from '../analysis/ast-parser';
+import { SimpleParser } from '../analysis/simple-parser';
 
 export class AIDetector {
-  private parser: ASTParser;
+  private parser: SimpleParser;
 
   constructor() {
-    this.parser = new ASTParser();
+    this.parser = new SimpleParser();
   }
 
   // Main AI detection method
@@ -74,8 +74,7 @@ export class AIDetector {
         const fileInfo = await FileUtils.getFileInfo(file);
         if (!fileInfo.isJavaScript) continue;
 
-        const tree = this.parser.parseFile(fileInfo.content, fileInfo.isTypeScript);
-        const functions = this.parser.extractFunctions(tree, file);
+        const functions = this.parser.extractFunctions(fileInfo.content, file);
 
         totalFunctions += functions.length;
 
@@ -144,8 +143,8 @@ export class AIDetector {
         const fileInfo = await FileUtils.getFileInfo(file);
         if (!fileInfo.isJavaScript) continue;
 
-        const tree = this.parser.parseFile(fileInfo.content, fileInfo.isTypeScript);
-        const imports = this.parser.extractImports(tree, file);
+        // For MVP, we'll skip import analysis to keep it simple
+        const imports: any[] = [];
 
         totalImports += imports.length;
         namedImports += imports.filter(i => !i.isDefault && !i.isNamespace).length;
