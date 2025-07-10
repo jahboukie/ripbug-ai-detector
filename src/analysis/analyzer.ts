@@ -105,20 +105,30 @@ export class RippleAnalyzer {
   private async filterValidFiles(files: string[]): Promise<string[]> {
     const validFiles: string[] = [];
 
+    console.log('DEBUG: Input files:', files);
+
     for (const file of files) {
       try {
+        const exists = await FileUtils.exists(file);
+        const isSupported = FileUtils.isSupportedFile(file);
+        const shouldInclude = this.shouldIncludeFile(file);
+
+        console.log(`DEBUG: File ${file}:`, { exists, isSupported, shouldInclude });
+
         // Check if file exists and is supported
-        if (await FileUtils.exists(file) && FileUtils.isSupportedFile(file)) {
+        if (exists && isSupported) {
           // Check against include/exclude patterns
-          if (this.shouldIncludeFile(file)) {
+          if (shouldInclude) {
             validFiles.push(file);
+            console.log(`DEBUG: Added file: ${file}`);
           }
         }
       } catch (error) {
-        // Skip files that can't be accessed
+        console.log(`DEBUG: Error processing ${file}:`, error);
       }
     }
 
+    console.log('DEBUG: Valid files:', validFiles);
     return validFiles;
   }
 
@@ -126,32 +136,37 @@ export class RippleAnalyzer {
   private shouldIncludeFile(file: string): boolean {
     const relativePath = FileUtils.getRelativePath(file);
 
-    // Check exclude patterns first
-    for (const pattern of this.config.analysis.exclude) {
-      if (this.matchesPattern(relativePath, pattern)) {
-        return false;
-      }
+    // TEMPORARY: For testing, just check if it's a JS/TS file
+    if (relativePath.endsWith('.js') || relativePath.endsWith('.ts') ||
+        relativePath.endsWith('.jsx') || relativePath.endsWith('.tsx')) {
+      console.log(`DEBUG: Including ${relativePath} (JS/TS file)`);
+      return true;
     }
 
-    // Check include patterns
-    for (const pattern of this.config.analysis.include) {
-      if (this.matchesPattern(relativePath, pattern)) {
-        return true;
-      }
-    }
-
+    console.log(`DEBUG: Excluding ${relativePath} (not JS/TS)`);
     return false;
   }
 
   // Simple pattern matching (in production, use a proper glob library)
   private matchesPattern(filePath: string, pattern: string): boolean {
-    // Convert glob pattern to regex (simplified)
-    const regexPattern = pattern
-      .replace(/\*\*/g, '.*')
-      .replace(/\*/g, '[^/]*')
-      .replace(/\./g, '\\.');
-    
+    // Handle {js,ts,jsx,tsx} syntax
+    let regexPattern = pattern;
+
+    // Expand {js,ts,jsx,tsx} to (js|ts|jsx|tsx)
+    regexPattern = regexPattern.replace(/\{([^}]+)\}/g, (match, group) => {
+      const options = group.split(',').map((s: string) => s.trim());
+      return `(${options.join('|')})`;
+    });
+
+    // Convert glob pattern to regex (order matters!)
+    regexPattern = regexPattern
+      .replace(/\*\*/g, '__DOUBLE_STAR__')  // Temporarily replace **
+      .replace(/\./g, '\\.')                // Escape dots first
+      .replace(/__DOUBLE_STAR__/g, '.*')    // Then replace ** with .*
+      .replace(/\*/g, '[^/]*');             // Finally replace single * with [^/]*
+
     const regex = new RegExp(`^${regexPattern}$`);
+    console.log(`DEBUG matchesPattern: pattern="${pattern}" -> regex="${regexPattern}" -> test("${filePath}") = ${regex.test(filePath)}`);
     return regex.test(filePath);
   }
 
