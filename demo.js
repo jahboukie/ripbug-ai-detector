@@ -2,6 +2,7 @@
 
 // 🌊 Ripple AI Bug Detector - Demo Version
 // This is a simplified demo showing the core concept
+// This is a simplified demo showing the core concept
 
 console.log('\n🌊 Ripple AI Bug Detector v1.0.0');
 console.log('   Catch AI-generated bugs before you commit\n');
