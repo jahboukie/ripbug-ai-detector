@@ -15,7 +15,7 @@ interface UsageData {
 export class UsageTracker {
   private usageFile: string;
   private defaultLimits = {
-    free: 10,
+    free: 50,
     pro: -1, // unlimited
     team: -1, // unlimited
     enterprise: -1 // unlimited

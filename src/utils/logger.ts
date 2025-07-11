@@ -101,8 +101,8 @@ export class Logger {
   // Header with banner
   header(): void {
     console.log();
-    console.log(chalk.blue('🌊 ') + chalk.bold.blue('Ripple AI Bug Detector'));
-    console.log(chalk.gray('   Catch AI-generated bugs before you commit'));
+    console.log(chalk.red('🔥 ') + chalk.bold.red('RipBug AI Bug Detector'));
+    console.log(chalk.gray('   Rip AI-generated bugs before you commit'));
     console.log();
   }
 }

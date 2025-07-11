@@ -152,7 +152,7 @@ export class AuthManager {
           id: 'user_123'
         },
         limits: {
-          validationsPerMonth: 10,
+          validationsPerMonth: 50,
           currentUsage: 0
         }
       };
@@ -181,7 +181,7 @@ export class AuthManager {
           id: 'user_demo'
         },
         limits: {
-          validationsPerMonth: 10,
+          validationsPerMonth: 50,
           currentUsage: 0
         }
       };

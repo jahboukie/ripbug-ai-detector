@@ -1,10 +1,10 @@
 {
-  "name": "ripple-validator",
+  "name": "ripbug-ai-detector",
   "version": "1.0.0",
-  "description": "AI Bug Detector - Catch AI-generated bugs before you commit",
-  "main": "demo.js",
+  "description": "🔥 RipBug AI Bug Detector - Built by an AI that rips its own bugs. Destroy AI-generated bugs before you commit.",
+  "main": "dist/cli.js",
   "bin": {
-    "ripple": "demo.js"
+    "ripbug": "dist/cli.js"
   },
   "scripts": {
     "start": "node demo.js",
@@ -18,6 +18,11 @@
     "ai",
     "bug-detection",
     "code-analysis",
+    "ai-generated-code",
+    "function-signature",
+    "ripple-effect",
+    "behavioral-psychology",
+    "developer-tools",
     "typescript",
     "javascript",
     "claude",

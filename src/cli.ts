@@ -2,23 +2,29 @@
 
 import { Command } from 'commander';
 import chalk from 'chalk';
+import { readFileSync } from 'fs';
+import { join } from 'path';
 import { validateCommand } from './commands/validate';
 import { initCommand } from './commands/init';
 import { authCommand } from './commands/auth';
 import { upgradeCommand } from './commands/upgrade';
 
+// Read version from package.json
+const packageJson = JSON.parse(readFileSync(join(__dirname, '../package.json'), 'utf8'));
+const version = packageJson.version;
+
 const program = new Command();
 
 // ASCII Art Banner
 const banner = `
-🌊 ${chalk.bold.blue('Ripple AI Bug Detector')}
-   ${chalk.gray('Catch AI-generated bugs before you commit')}
+🔥 ${chalk.bold.red('RipBug AI Bug Detector')}
+   ${chalk.gray('Rip AI-generated bugs before you commit')}
 `;
 
 program
-  .name('ripple')
-  .description('AI Bug Detector - Built by an AI that knows its flaws')
-  .version('1.0.0')
+  .name('ripbug')
+  .description('AI Bug Detector - Built by an AI that rips its own bugs')
+  .version(version)
   .addHelpText('beforeAll', banner);
 
 // Main validate command

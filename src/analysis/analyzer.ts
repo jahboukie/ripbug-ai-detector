@@ -105,30 +105,24 @@ export class RippleAnalyzer {
   private async filterValidFiles(files: string[]): Promise<string[]> {
     const validFiles: string[] = [];
 
-    console.log('DEBUG: Input files:', files);
-
     for (const file of files) {
       try {
         const exists = await FileUtils.exists(file);
         const isSupported = FileUtils.isSupportedFile(file);
         const shouldInclude = this.shouldIncludeFile(file);
 
-        console.log(`DEBUG: File ${file}:`, { exists, isSupported, shouldInclude });
-
         // Check if file exists and is supported
         if (exists && isSupported) {
           // Check against include/exclude patterns
           if (shouldInclude) {
             validFiles.push(file);
-            console.log(`DEBUG: Added file: ${file}`);
           }
         }
       } catch (error) {
-        console.log(`DEBUG: Error processing ${file}:`, error);
+        // Skip files that can't be accessed
       }
     }
 
-    console.log('DEBUG: Valid files:', validFiles);
     return validFiles;
   }
 
@@ -136,15 +130,9 @@ export class RippleAnalyzer {
   private shouldIncludeFile(file: string): boolean {
     const relativePath = FileUtils.getRelativePath(file);
 
-    // TEMPORARY: For testing, just check if it's a JS/TS file
-    if (relativePath.endsWith('.js') || relativePath.endsWith('.ts') ||
-        relativePath.endsWith('.jsx') || relativePath.endsWith('.tsx')) {
-      console.log(`DEBUG: Including ${relativePath} (JS/TS file)`);
-      return true;
-    }
-
-    console.log(`DEBUG: Excluding ${relativePath} (not JS/TS)`);
-    return false;
+    // For MVP: Simple check for JS/TS files
+    return relativePath.endsWith('.js') || relativePath.endsWith('.ts') ||
+           relativePath.endsWith('.jsx') || relativePath.endsWith('.tsx');
   }
 
   // Simple pattern matching (in production, use a proper glob library)
@@ -166,7 +154,6 @@ export class RippleAnalyzer {
       .replace(/\*/g, '[^/]*');             // Finally replace single * with [^/]*
 
     const regex = new RegExp(`^${regexPattern}$`);
-    console.log(`DEBUG matchesPattern: pattern="${pattern}" -> regex="${regexPattern}" -> test("${filePath}") = ${regex.test(filePath)}`);
     return regex.test(filePath);
   }
 
