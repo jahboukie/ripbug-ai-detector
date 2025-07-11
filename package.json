@@ -1,6 +1,6 @@
 {
   "name": "ripbug-ai-detector",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "🔥 RipBug AI Bug Detector - Built by an AI that rips its own bugs. Destroy AI-generated bugs before you commit.",
   "main": "dist/cli.js",
   "bin": {
