@@ -271,16 +271,16 @@ export class TreeSitterParser {
     return null;
   }
 
-  // Find function calls in AST
+  // Find function calls in AST - Step 4 Enhancement: Add member call detection
   private findFunctionCalls(node: Parser.SyntaxNode, content: string, filePath: string, calls: any[]): void {
     if (node.type === 'call_expression') {
       const funcNode = node.childForFieldName('function');
       const argsNode = node.childForFieldName('arguments');
-      
+
       if (funcNode) {
         const position = node.startPosition;
         const line = content.split('\n')[position.row] || '';
-        
+
         calls.push({
           name: funcNode.text,
           file: filePath,
@@ -292,10 +292,40 @@ export class TreeSitterParser {
       }
     }
 
+    // Step 4 Enhancement: Handle member calls (obj.method())
+    if (node.type === 'member_expression' && node.parent?.type === 'call_expression') {
+      const memberCall = this.parseMemberCall(node, content, filePath);
+      if (memberCall) {
+        calls.push(memberCall);
+      }
+    }
+
     // Recursively traverse child nodes
     for (let i = 0; i < node.childCount; i++) {
       this.findFunctionCalls(node.child(i)!, content, filePath, calls);
     }
+  }
+
+  // Step 4 Enhancement: Parse member calls (obj.method())
+  private parseMemberCall(node: Parser.SyntaxNode, content: string, filePath: string): any | null {
+    const propertyNode = node.childForFieldName('property');
+    if (!propertyNode) return null;
+
+    const position = node.startPosition;
+    const line = content.split('\n')[position.row] || '';
+
+    // Get the parent call expression to find arguments
+    const callParent = node.parent;
+    const argsNode = callParent?.childForFieldName('arguments');
+
+    return {
+      name: propertyNode.text,
+      file: filePath,
+      line: position.row + 1,
+      column: position.column,
+      context: line.trim(),
+      arguments: argsNode ? this.parseArguments(argsNode) : []
+    };
   }
 
   // Parse function call arguments
@@ -373,7 +403,29 @@ export class TreeSitterParser {
         return true;
       }
 
+      // Check if any ancestor has export in its text (fallback)
+      if (current.parent && current.parent.text.trim().startsWith('export ')) {
+        return true;
+      }
+
+      // Check siblings for export keyword (for cases where export is a separate node)
+      if (current.parent) {
+        for (let i = 0; i < current.parent.childCount; i++) {
+          const sibling = current.parent.child(i);
+          if (sibling && sibling.type === 'export' && sibling.text === 'export') {
+            return true;
+          }
+        }
+      }
+
       current = current.parent;
+    }
+
+    // Final fallback: check if the node text itself contains export
+    // This should catch cases where the AST structure is different than expected
+    const nodeText = node.text;
+    if (nodeText.includes('export function') || nodeText.includes('export const') || nodeText.includes('export class')) {
+      return true;
     }
 
     return false;

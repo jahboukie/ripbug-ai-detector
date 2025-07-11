@@ -9,6 +9,10 @@ interface ValidateOptions {
   format: 'console' | 'json';
   files?: string[];
   all?: boolean;
+  treeSitterMode?: boolean;
+  compareMethods?: boolean;
+  experimental?: boolean;
+  reportDifferences?: boolean;
 }
 
 export async function validateCommand(options: ValidateOptions): Promise<void> {

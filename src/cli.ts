@@ -34,6 +34,10 @@ program
   .option('-f, --format <type>', 'output format (console|json)', 'console')
   .option('--files <files...>', 'specific files to validate')
   .option('--all', 'validate all files (not just staged)')
+  .option('--tree-sitter-mode', 'force tree-sitter parsing mode')
+  .option('--compare-methods', 'compare tree-sitter vs regex methods')
+  .option('--experimental', 'enable experimental features')
+  .option('--report-differences', 'report differences between parsing methods')
   .action(validateCommand);
 
 // Initialize project
