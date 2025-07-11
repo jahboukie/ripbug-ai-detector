@@ -36,22 +36,26 @@ export interface IssueDetails {
   oldSignature?: string;
   newSignature?: string;
   affectedFiles?: AffectedFile[];
-  
+
   // Import/export issues
   importName?: string;
   exportName?: string;
   modulePath?: string;
   availableExports?: string[];
-  
+
   // Type issues
   typeName?: string;
   expectedType?: string;
   actualType?: string;
-  
+
   // AI detection
   aiPatterns?: string[];
   aiConfidence?: number;
-  
+
+  // Enhanced tree-sitter analysis
+  breakingChangeType?: string;
+  treeSitterDetected?: boolean;
+
   // General
   context?: string;
   codeSnippet?: string;
