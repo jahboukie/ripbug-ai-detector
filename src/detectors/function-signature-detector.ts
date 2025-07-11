@@ -1,5 +1,5 @@
 import { EnhancedASTParser } from '../analysis/ast-parser-enhanced';
-import { EnhancedSignatureDetector } from '../analysis/enhanced-signature-detector';
+import { BasicCrossFileAnalyzer } from '../analysis/basic-cross-file-analyzer';
 import { FeatureFlags } from '../config/feature-flags';
 import { FileUtils } from '../utils/file-utils';
 import { Issue, FunctionInfo, AffectedFile, Parameter } from '../types/analysis';
@@ -14,7 +14,6 @@ interface FunctionChange {
 
 export class FunctionSignatureDetector {
   private parser: EnhancedASTParser;
-  private enhancedDetector: EnhancedSignatureDetector;
 
   constructor() {
     // Initialize with feature flags for smart tree-sitter rollout
@@ -24,9 +23,6 @@ export class FunctionSignatureDetector {
       fallbackToRegex: true,
       debugMode: false
     });
-
-    // Step 5: Initialize Enhanced Signature Detector
-    this.enhancedDetector = new EnhancedSignatureDetector();
   }
 
   // Main detection method
@@ -91,55 +87,53 @@ export class FunctionSignatureDetector {
       }
     }
 
-    // ENHANCEMENT: Cross-file signature validation
+    // STEP 4: Basic cross-file signature validation
     const crossFileIssues = await this.validateCrossFileSignatures(currentFunctions, allFiles);
     issues.push(...crossFileIssues);
-
-    // STEP 5: Enhanced sophisticated signature analysis
-    const sophisticatedIssues = await this.runSophisticatedAnalysis(currentFunctions, allFiles);
-    issues.push(...sophisticatedIssues);
 
     return issues;
   }
 
-  // Enhanced Cross-file signature validation using tree-sitter's superior detection
+  // STEP 4: Basic cross-file signature validation - SIMPLE APPROACH
   private async validateCrossFileSignatures(functions: FunctionInfo[], allFiles: string[]): Promise<Issue[]> {
     const issues: Issue[] = [];
 
-    // Step 4 Enhancement: Use tree-sitter's superior function detection
-    // Tree-sitter finds 14 functions vs regex's 6 - we need to analyze ALL functions
     for (const func of functions) {
-      // Temporarily disable export check to test cross-file analysis logic
-      // TODO: Fix export detection and re-enable this check
-      // if (!func.isExported) continue;
+      // Only analyze exported functions (they can be called from other files)
+      if (!func.isExported) continue;
 
-      // Enhanced: Use tree-sitter for more accurate call site detection
-      const callSites = await this.findCallSitesWithTreeSitter(func, allFiles);
+      // Find calls to this function in other files
+      const callSites = await this.findCallSites(func, allFiles);
 
       for (const callSite of callSites) {
-        // Enhanced: More sophisticated parameter analysis
-        const signatureAnalysis = this.analyzeSignatureCompatibility(func, callSite);
+        // Simple comparison: required parameters vs provided arguments
+        const requiredParams = func.parameters.filter(p => !p.optional && !p.defaultValue);
+        const providedArgs = this.getArgumentCount(callSite.context);
 
-        if (signatureAnalysis.hasBreakingChange) {
+        // Breaking change: missing required parameters
+        if (providedArgs < requiredParams.length) {
+          const missing = requiredParams.length - providedArgs;
+
           issues.push({
-            id: `cross-file-${func.name}-${callSite.line}-${Date.now()}`,
+            id: `cross-file-${func.name}-${callSite.line}`,
             type: 'function-signature-change',
-            severity: signatureAnalysis.severity,
-            message: signatureAnalysis.message,
+            severity: 'error',
+            message: `Function call missing ${missing} required parameter(s): ${func.name}()`,
             file: func.file,
             line: func.line,
             column: func.column,
             details: {
               functionName: func.name,
-              oldSignature: signatureAnalysis.expectedSignature,
-              newSignature: this.getFunctionSignature(func),
+              oldSignature: `${func.name}(${this.getSimpleSignature(providedArgs)})`,
+              newSignature: `${func.name}(${this.getSimpleSignature(requiredParams.length)})`,
               affectedFiles: [callSite],
-              context: `Breaking call: ${callSite.context}`,
-              breakingChangeType: signatureAnalysis.changeType,
-              treeSitterDetected: true // Mark as tree-sitter enhanced detection
+              context: `Breaking call: ${callSite.context}`
             },
-            suggestions: signatureAnalysis.suggestions,
-            confidence: signatureAnalysis.confidence
+            suggestions: [
+              `Add ${missing} missing parameter(s) to call in ${callSite.path}:${callSite.line}`,
+              'Check if function signature was changed without updating callers'
+            ],
+            confidence: 0.9
           });
         }
       }
@@ -336,92 +330,9 @@ export class FunctionSignatureDetector {
     return 'Verify parameter types match the function signature';
   }
 
-  // Step 5: Run sophisticated signature analysis using Enhanced Signature Detector
-  private async runSophisticatedAnalysis(functions: FunctionInfo[], allFiles: string[]): Promise<Issue[]> {
-    const issues: Issue[] = [];
 
-    try {
-      // Use the enhanced detector for sophisticated analysis
-      const signatureChanges = await this.enhancedDetector.detectSignatureChanges(functions, allFiles);
 
-      for (const change of signatureChanges) {
-        const issue: Issue = {
-          id: `enhanced-sig-${change.function.name}-${Date.now()}`,
-          type: 'function-signature-change',
-          severity: change.severity,
-          message: this.createEnhancedIssueMessage(change),
-          file: change.function.file,
-          line: change.function.line,
-          column: change.function.column,
-          details: {
-            functionName: change.function.name,
-            oldSignature: this.simulateOldSignature(change),
-            newSignature: this.getFunctionSignature(change.function),
-            affectedFiles: change.breakingCalls.map(call => ({
-              path: call.filePath,
-              line: call.line,
-              column: call.column,
-              context: call.context,
-              suggestion: this.generateEnhancedSuggestion(call)
-            })),
-            context: `AI patterns detected: ${change.aiPatterns.join(', ')}`,
-            breakingChangeType: change.changeType,
-            treeSitterDetected: true,
-            aiPatterns: change.aiPatterns,
-            aiConfidence: change.confidence
-          },
-          suggestions: this.generateSophisticatedSuggestions(change),
-          confidence: change.confidence
-        };
 
-        issues.push(issue);
-      }
-
-    } catch (error) {
-      // Fallback gracefully if enhanced analysis fails
-      if (FeatureFlags.getConfig().debugMode) {
-        console.warn('Enhanced signature analysis failed:', error);
-      }
-    }
-
-    return issues;
-  }
-
-  // Create enhanced issue message with AI pattern information
-  private createEnhancedIssueMessage(change: any): string {
-    const patterns = change.aiPatterns.length > 0 ? ` (AI patterns: ${change.aiPatterns.join(', ')})` : '';
-    return `Sophisticated analysis detected ${change.changeType.replace('-', ' ')} in ${change.function.name}()${patterns}`;
-  }
-
-  // Simulate old signature for comparison
-  private simulateOldSignature(change: any): string {
-    const func = change.function;
-
-    // For parameter-added changes, simulate without the last parameter
-    if (change.changeType === 'parameter-added' && func.parameters.length > 0) {
-      const oldParams = func.parameters.slice(0, -1);
-      return `${func.name}(${oldParams.map((p: Parameter) => `${p.name}: ${p.type || 'any'}`).join(', ')})`;
-    }
-
-    // For other changes, use simplified signature
-    return `${func.name}(${func.parameters.slice(0, Math.max(1, func.parameters.length - 1)).map((p: Parameter) => p.name).join(', ')})`;
-  }
-
-  // Generate enhanced suggestion for breaking calls
-  private generateEnhancedSuggestion(call: any): string {
-    if (call.missingParams && call.missingParams.length > 0) {
-      const suggestions = call.missingParams.map((p: any) => {
-        if (p.defaultValue) return p.defaultValue;
-        if (p.type === 'string') return "''";
-        if (p.type === 'number') return '0';
-        if (p.type === 'boolean') return 'false';
-        if (p.type && p.type.includes('{}')) return '{}';
-        return 'undefined';
-      });
-      return `Add missing parameters: ${suggestions.join(', ')}`;
-    }
-    return 'Update call to match new signature';
-  }
 
   // Generate sophisticated suggestions based on AI patterns
   private generateSophisticatedSuggestions(change: any): string[] {
@@ -457,9 +368,19 @@ export class FunctionSignatureDetector {
     return suggestions;
   }
 
-  // Fallback: Count arguments in a function call (simple method)
-  private countArgumentsInCall(callContext: string): number {
-    return this.getArgumentCountFromContext(callContext);
+  // Simple argument counting from call context
+  private getArgumentCount(callContext: string): number {
+    const match = callContext.match(/\(([^)]*)\)/);
+    if (!match || !match[1].trim()) return 0;
+
+    // Simple split by comma and count non-empty parts
+    return match[1].split(',').filter(arg => arg.trim()).length;
+  }
+
+  // Generate simple signature representation
+  private getSimpleSignature(argCount: number): string {
+    if (argCount === 0) return '';
+    return Array(argCount).fill('arg').map((_, i) => `arg${i + 1}`).join(', ');
   }
 
   // Get parameter signature string
@@ -473,10 +394,7 @@ export class FunctionSignatureDetector {
     }).join(', ');
   }
 
-  // Get simple signature for comparison
-  private getSimpleSignature(paramCount: number): string {
-    return Array(paramCount).fill(0).map((_, i) => `param${i + 1}`).join(', ');
-  }
+
 
   // Detect function changes (simplified for MVP)
   private async detectFunctionChanges(currentFunctions: FunctionInfo[], filePath: string): Promise<FunctionChange[]> {

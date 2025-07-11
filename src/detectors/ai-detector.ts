@@ -1,12 +1,19 @@
 import { AIDetectionResult, AIPattern } from '../types/analysis';
 import { FileUtils } from '../utils/file-utils';
-import { SimpleParser } from '../analysis/simple-parser';
+import { EnhancedASTParser } from '../analysis/ast-parser-enhanced';
+import { FeatureFlags } from '../config/feature-flags';
 
 export class AIDetector {
-  private parser: SimpleParser;
+  private parser: EnhancedASTParser;
 
   constructor() {
-    this.parser = new SimpleParser();
+    // Initialize with feature flags for smart tree-sitter rollout
+    const useTreeSitter = FeatureFlags.shouldUseTreeSitter('default');
+    this.parser = new EnhancedASTParser({
+      enableTreeSitter: useTreeSitter,
+      fallbackToRegex: true,
+      debugMode: false
+    });
   }
 
   // Main AI detection method

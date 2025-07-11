@@ -1,9 +1,31 @@
-// Simplified parser for MVP - uses regex instead of tree-sitter
-// This avoids the complex tree-sitter API issues for now
+// Enhanced SimpleParser - gradually adding tree-sitter features
+// Keeps working regex base while adding AST parsing incrementally
 
 import { FunctionInfo, Parameter } from '../types/analysis';
+import Parser from 'tree-sitter';
+import JavaScript from 'tree-sitter-javascript';
+import TypeScript from 'tree-sitter-typescript';
 
 export class SimpleParser {
+  private jsParser?: Parser;
+  private tsParser?: Parser;
+
+  constructor() {
+    // Initialize parsers lazily for better performance
+    this.initializeParsers();
+  }
+
+  private initializeParsers(): void {
+    try {
+      this.jsParser = new Parser();
+      this.jsParser.setLanguage(JavaScript);
+
+      this.tsParser = new Parser();
+      this.tsParser.setLanguage(TypeScript.typescript);
+    } catch (error) {
+      console.warn('Tree-sitter initialization failed, falling back to regex:', error);
+    }
+  }
   
   // Extract function definitions using regex (simplified approach)
   extractFunctions(content: string, filePath: string): FunctionInfo[] {
@@ -98,12 +120,21 @@ export class SimpleParser {
     return calls;
   }
 
-  // Parse function parameters from string
-  private parseParameters(paramsStr: string): Parameter[] {
+  // Enhanced parameter parsing with optional tree-sitter fallback
+  private parseParameters(paramsStr: string, content?: string, isTypeScript?: boolean): Parameter[] {
     if (!paramsStr.trim()) {
       return [];
     }
 
+    // Try tree-sitter parsing for better accuracy (if available)
+    if (content && (this.jsParser || this.tsParser)) {
+      const astParams = this.parseParametersWithAST(content, isTypeScript || false);
+      if (astParams.length > 0) {
+        return astParams;
+      }
+    }
+
+    // Fallback to regex parsing (existing working code)
     const parameters: Parameter[] = [];
     const params = paramsStr.split(',').map(p => p.trim());
 
@@ -146,6 +177,130 @@ export class SimpleParser {
     }
 
     return parameters;
+  }
+
+  // Tree-sitter parameter parsing (enhanced accuracy)
+  private parseParametersWithAST(content: string, isTypeScript: boolean): Parameter[] {
+    try {
+      const parser = isTypeScript ? this.tsParser : this.jsParser;
+      if (!parser) return [];
+
+      const tree = parser.parse(content);
+      const parameters: Parameter[] = [];
+
+      // Find function declarations in the AST
+      this.findFunctionParameters(tree.rootNode, parameters);
+
+      return parameters;
+    } catch (error) {
+      // Silently fall back to regex parsing
+      return [];
+    }
+  }
+
+  // Safely traverse AST to find function parameters
+  private findFunctionParameters(node: any, parameters: Parameter[]): void {
+    try {
+      // Look for function declarations
+      if (node.type === 'function_declaration' || node.type === 'arrow_function') {
+        const paramsNode = this.findParametersNode(node);
+        if (paramsNode) {
+          this.extractParametersFromNode(paramsNode, parameters);
+        }
+      }
+
+      // Recursively check child nodes (safely)
+      if (node.children && Array.isArray(node.children)) {
+        for (const child of node.children) {
+          if (child && typeof child === 'object') {
+            this.findFunctionParameters(child, parameters);
+          }
+        }
+      }
+    } catch (error) {
+      // Skip this node if there's any error
+    }
+  }
+
+  // Find the parameters node in a function
+  private findParametersNode(functionNode: any): any {
+    try {
+      if (!functionNode.children) return null;
+
+      for (const child of functionNode.children) {
+        if (child && child.type === 'formal_parameters') {
+          return child;
+        }
+      }
+      return null;
+    } catch (error) {
+      return null;
+    }
+  }
+
+  // Extract parameters from the parameters node
+  private extractParametersFromNode(paramsNode: any, parameters: Parameter[]): void {
+    try {
+      if (!paramsNode.children) return;
+
+      for (const child of paramsNode.children) {
+        if (!child || child.type === '(' || child.type === ')' || child.type === ',') {
+          continue;
+        }
+
+        const param = this.parseParameterNode(child);
+        if (param) {
+          parameters.push(param);
+        }
+      }
+    } catch (error) {
+      // Skip this parameter if there's any error
+    }
+  }
+
+  // Parse individual parameter node
+  private parseParameterNode(node: any): Parameter | null {
+    try {
+      if (!node.text) return null;
+
+      const text = node.text.trim();
+
+      // Handle TypeScript typed parameters: name: type
+      const typedMatch = text.match(/^(\w+)(\?)?:\s*([^=]+)(?:\s*=\s*(.+))?$/);
+      if (typedMatch) {
+        const [, name, optional, type, defaultValue] = typedMatch;
+        return {
+          name,
+          type: type.trim(),
+          optional: !!optional || !!defaultValue,
+          defaultValue: defaultValue?.trim()
+        };
+      }
+
+      // Handle parameters with default values: name = value
+      const defaultMatch = text.match(/^(\w+)\s*=\s*(.+)$/);
+      if (defaultMatch) {
+        const [, name, defaultValue] = defaultMatch;
+        return {
+          name,
+          optional: true,
+          defaultValue: defaultValue.trim()
+        };
+      }
+
+      // Simple parameter: just name
+      const nameMatch = text.match(/^(\w+)$/);
+      if (nameMatch) {
+        return {
+          name: nameMatch[1],
+          optional: false
+        };
+      }
+
+      return null;
+    } catch (error) {
+      return null;
+    }
   }
 
   // Check if function name is a built-in
