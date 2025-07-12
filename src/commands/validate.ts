@@ -4,6 +4,11 @@ import { GitManager } from '../git/git-manager';
 import { RipBugAnalyzer } from '../analysis/analyzer';
 import { UsageTracker } from '../usage/usage-tracker';
 import { OutputFormatter } from '../output/formatter';
+import { StaleReferenceDetector } from '../detectors/stale-reference-detector';
+import { ImportExportMismatchDetector } from '../detectors/import-export-mismatch-detector';
+import { SignatureMismatchDetector } from '../detectors/signature-mismatch-detector';
+import { Detector } from '../types/detector';
+import { glob } from 'glob';
 import path from 'path';
 
 interface ValidateOptions {
@@ -42,9 +47,28 @@ export async function validateCommand(options: ValidateOptions): Promise<void> {
 
     // Determine files to analyze
     let filesToAnalyze: string[] = [];
-    
+
     if (options.files) {
-      filesToAnalyze = options.files;
+      // Expand glob patterns in file arguments
+      const expandedFiles: string[] = [];
+      for (const filePattern of options.files) {
+        try {
+          const matches = await glob(filePattern, {
+            cwd: process.cwd(),
+            absolute: true
+          });
+          if (matches.length > 0) {
+            expandedFiles.push(...matches);
+          } else {
+            // If no matches, treat as literal file path (might exist)
+            expandedFiles.push(path.resolve(filePattern));
+          }
+        } catch (error) {
+          // If glob fails, treat as literal file path
+          expandedFiles.push(path.resolve(filePattern));
+        }
+      }
+      filesToAnalyze = [...new Set(expandedFiles)]; // Remove duplicates
     } else if (options.all) {
       // Analyze all files in project
       const gitManager = new GitManager();
@@ -114,7 +138,22 @@ export async function validateCommand(options: ValidateOptions): Promise<void> {
     // Start analysis
     logger.startSpinner(`Analyzing ${filesToAnalyze.length} files...`);
 
-    const analyzer = new RipBugAnalyzer(config);
+    // Create detectors based on configuration
+    const detectors: Detector[] = [];
+
+    if (config.rules.staleReferenceDetection?.enabled) {
+      detectors.push(new StaleReferenceDetector());
+    }
+
+    if (config.rules.importExportMismatch?.enabled) {
+      detectors.push(new ImportExportMismatchDetector());
+    }
+
+    if (config.rules.signatureMismatch?.enabled) {
+      detectors.push(new SignatureMismatchDetector());
+    }
+
+    const analyzer = new RipBugAnalyzer(detectors);
     const results = await analyzer.analyze(filesToAnalyze);
 
     logger.stopSpinner(true, `Analysis complete`);

@@ -24,6 +24,8 @@
     "node_modules",
     "dist",
     "**/*.test.ts",
-    "src/analysis/ast-parser.ts"
+    "src/analysis/ast-parser.ts",
+    "test/fixtures",
+    "test/scenarios"
   ]
 }
