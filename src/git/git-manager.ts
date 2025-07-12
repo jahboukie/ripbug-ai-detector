@@ -102,22 +102,47 @@ export class GitManager {
   async getAllJSFiles(): Promise<string[]> {
     try {
       const files = await FileUtils.getJSFiles(this.cwd);
-      
+      console.log(`GitManager: Found ${files.length} JS/TS files`);
+
+      // Check if we're in a git repository
+      const isRepo = await this.isGitRepository();
+      if (!isRepo) {
+        console.log('GitManager: Not a git repository, returning all files');
+        return files;
+      }
+
+      // TEMPORARY FIX: Skip git ignore filtering due to issues with git check-ignore
+      // TODO: Fix git ignore detection in future version
+      console.log('GitManager: Skipping git ignore filtering (temporary fix)');
+      return files;
+
+      // The following code is disabled due to git check-ignore issues
+      /*
+      // Get git root directory for proper relative path calculation
+      const gitRoot = await this.git.revparse(['--show-toplevel']).catch(() => this.cwd);
+      console.log(`GitManager: Git root: ${gitRoot}, Current working dir: ${this.cwd}`);
+
       // Filter out files that are ignored by git
       const filteredFiles: string[] = [];
-      
+      let ignoredCount = 0;
+
       for (const file of files) {
         const relativePath = path.relative(this.cwd, file);
         const isIgnored = await this.isFileIgnored(relativePath);
-        
+
         if (!isIgnored) {
           filteredFiles.push(file);
+        } else {
+          ignoredCount++;
         }
       }
 
+      console.log(`GitManager: Filtered out ${ignoredCount} ignored files, returning ${filteredFiles.length} files`);
       return filteredFiles;
+      */
 
     } catch (error) {
+      console.error('GitManager: Error in getAllJSFiles:', error);
       throw new Error(`Failed to get JS files: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
@@ -130,10 +155,27 @@ export class GitManager {
         return false;
       }
 
-      const result = await this.git.raw(['check-ignore', filePath]).catch(() => null);
-      return result !== null;
+      // Use git check-ignore to see if file is ignored
+      // Exit code 0 = file IS ignored
+      // Exit code 1 = file is NOT ignored
+      try {
+        const result = await this.git.raw(['check-ignore', filePath]);
+        // If we get here without error, the file is ignored (exit code 0)
+        console.log(`GitManager: check-ignore result for ${filePath}: ${result} (ignored)`);
+        return true;
+      } catch (error: any) {
+        // If exit code is 1, file is not ignored (this is the normal case)
+        if (error?.exitCode === 1) {
+          console.log(`GitManager: check-ignore exit code 1 for ${filePath} (not ignored)`);
+          return false;
+        }
+        // For other errors, assume file is not ignored to be safe
+        console.warn(`GitManager: Error checking if file is ignored (${filePath}), exit code: ${error?.exitCode}:`, error?.message || error);
+        return false;
+      }
 
-    } catch {
+    } catch (error) {
+      console.warn(`GitManager: Error in isFileIgnored for ${filePath}:`, error);
       return false;
     }
   }
