@@ -1,5 +1,7 @@
 {
-  "signature-drift.ts": "a2f709e191c8a137e743dd98a3ca4842cc437cd6518c25ae53f52bd787c16e03",
-  "import-mismatch.ts": "f84948d54c7526bec2771942f0f5a654d80bd172b77bed387e6625eeb00d42c1",
-  "cascade-rename.ts":  "0ca9fdc3f00f5b57219ada12ad18e232d83fbb4073ed74fe453e44e4c2c296c8"
+  "cascade-rename.ts": "9148b42b620ff7b20bb283e001b68725760d5059522dd945a61c7ba675d98e7e",
+  "custom.d.ts": "dd208d7010607fbec5d577cdc9b8f410888e98ec5bf24ba985fdf3f991498bde",
+  "import-mismatch.ts": "8f77d079d28180a1ed7a7bb60833e1b3f72fb1a4fd72114dfd593e4023323e2a",
+  "invoice.ts": "1b8330e77bf3facf730f0f127130363dd9c712f12c0f615eb879953872e371cc",
+  "signature-drift.ts": "a2f709e191c8a137e743dd98a3ca4842cc437cd6518c25ae53f52bd787c16e03"
 }

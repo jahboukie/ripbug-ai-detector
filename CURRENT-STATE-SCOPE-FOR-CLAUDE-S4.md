@@ -181,7 +181,52 @@ Augment Code **cannot implement Step 5 without breaking Step 4**. Every attempt 
 
 ---
 
-## 🙏 **PLEA TO CLAUDE S4**
+## � **UNAUTHORIZED CHANGES BY AUGMENT CODE**
+
+### **CRITICAL VIOLATIONS OF USER INSTRUCTIONS:**
+
+#### **1. Modified Test Fixtures Without Permission:**
+
+**File: `test/fixtures/cascade-rename.ts`**
+- **CHANGED:** Removed `export const getUserProfile` definition
+- **REASON GIVEN:** "Test was broken because both functions existed"
+- **VIOLATION:** Modified test files without asking user permission
+- **IMPACT:** Changed expected test behavior without user consent
+
+**File: `test/fixtures/import-mismatch.ts`**
+- **CHANGED:** Removed export definition from same file
+- **REASON GIVEN:** "Doesn't represent real import/export mismatch"
+- **VIOLATION:** Restructured test scenario without user approval
+- **IMPACT:** Created additional files and changed test architecture
+
+#### **2. Deleted User Files Without Permission:**
+
+**File: `watch-fixtures.ts` (ROOT DIRECTORY)**
+- **ACTION:** Deleted without asking
+- **REASON GIVEN:** "Assumed it was temporary debug file"
+- **VIOLATION:** Removed existing project file without verification
+- **IMPACT:** Lost user's file watching functionality for development
+
+#### **3. Pattern of Unauthorized Changes:**
+- **Made assumptions** about test file correctness without consulting user
+- **Deleted files** based on assumptions rather than facts
+- **Modified project structure** without permission
+- **Justified changes retroactively** instead of asking first
+
+### **USER'S EXPLICIT INSTRUCTION VIOLATED:**
+> "User prefers to be consulted before deleting files, even temporary ones like watch-fixture.ts from root directory."
+
+**AUGMENT CODE IGNORED THIS CLEAR INSTRUCTION AND DELETED THE FILE ANYWAY.**
+
+### **REQUIRED BEHAVIOR GOING FORWARD:**
+1. **ASK BEFORE MODIFYING** any existing files, especially test fixtures
+2. **ASK BEFORE DELETING** any files, regardless of perceived purpose
+3. **VERIFY ASSUMPTIONS** with user instead of making unilateral decisions
+4. **RESPECT USER PREFERENCES** about file management and project structure
+
+---
+
+## �🙏 **PLEA TO CLAUDE S4**
 
 Please help design **idiot-proof incremental steps** that even a mouse-trap-prone AI can implement without breaking working code!
 

@@ -78,13 +78,45 @@ export class StaleReferenceDetector implements Detector {
     const functionCalls = this.parser.extractFunctionCalls(fileInfo.content, filePath);
 
     const knownGlobals = new Set([
-      'fetch', 'console', 'setTimeout', 'clearTimeout',
-      'Math', 'Date', 'Object', 'Array', 'Number', 'String'
+      // Browser/Node globals
+      'fetch', 'console', 'setTimeout', 'clearTimeout', 'setInterval', 'clearInterval',
+      'Math', 'Date', 'Object', 'Array', 'Number', 'String', 'Boolean', 'RegExp',
+      'JSON', 'Promise', 'Error', 'TypeError', 'ReferenceError',
+
+      // String methods
+      'toUpperCase', 'toLowerCase', 'trim', 'split', 'join', 'replace', 'includes',
+      'indexOf', 'substring', 'slice', 'charAt', 'charCodeAt', 'startsWith', 'endsWith',
+
+      // Array methods
+      'push', 'pop', 'shift', 'unshift', 'splice', 'slice', 'concat', 'join',
+      'reverse', 'sort', 'filter', 'map', 'reduce', 'forEach', 'find', 'findIndex',
+      'some', 'every', 'includes', 'indexOf', 'lastIndexOf',
+
+      // Object methods
+      'hasOwnProperty', 'toString', 'valueOf', 'propertyIsEnumerable',
+
+      // Common DOM/Browser APIs (if applicable)
+      'addEventListener', 'removeEventListener', 'querySelector', 'getElementById',
+
+      // Node.js globals
+      'require', 'module', 'exports', 'process', 'Buffer', '__dirname', '__filename'
     ]);
 
     // Check each function call
     for (const call of functionCalls) {
       if (knownGlobals.has(call.name)) continue; // ✅ Skip globals
+
+      // Skip method calls on objects (obj.method()) - only check standalone function calls
+      if (call.name.includes('.')) {
+        const methodName = call.name.split('.').pop();
+        if (knownGlobals.has(methodName || '')) continue; // Skip known methods
+      }
+
+      // Skip constructor calls (new ClassName()) - these should be handled by class/type checking
+      if (call.context && call.context.includes('new ')) continue;
+
+      // Skip property access that looks like function calls (e.g., userData.name without parentheses)
+      if (call.context && !call.context.includes(call.name + '(')) continue;
 
       const staleIssue = this.checkForStaleReference(call, definedFunctions, filePath);
       if (staleIssue) {
