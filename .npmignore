@@ -1,0 +1,59 @@
+# Test files (exclude all test-related files)
+test-*.js
+test-*.ts
+*-test.ts
+*-test.js
+debug-*.js
+debug-*.ts
+benchmark-*.js
+benchmark-*.ts
+demo.js
+demo.ts
+
+# Test data files
+tree-sitter-stress-test.ts
+user-consumer.ts
+user-types.ts
+breaking-test-*.ts
+breaking-test-*.js
+complex-params-test.ts
+*-stress-test.*
+*-consumer.*
+
+# Documentation (keep README.md)
+*.md
+!README.md
+
+# Development files
+src/
+tsconfig.json
+tsconfig.tsbuildinfo
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Git
+.git/
+.gitignore
+
+# NPM
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Styles (if not needed for CLI)
+styles/
+
+# Keep only essential files:
+# - dist/ (compiled code)
+# - package.json
+# - README.md
+# - .ripple.config.js (example config)
+# - node_modules/ (automatically excluded)

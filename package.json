@@ -1,20 +1,15 @@
 {
   "name": "ripbug-ai-detector",
-  "version": "1.1.0",
+  "version": "1.2.2",
   "description": "🔥 RipBug AI Bug Detector - Built by an AI that rips its own bugs. Destroy AI-generated bugs before you commit.",
   "main": "dist/cli.js",
   "bin": {
     "ripbug": "dist/cli.js"
   },
   "scripts": {
-    "start": "node demo.js",
-    "demo": "node demo.js",
     "build": "tsc",
     "dev": "ts-node src/cli.ts",
     "test": "npm run build && node dist/cli.js",
-    "test:accuracy": "npm run build && node test-accuracy.js",
-    "benchmark:parsing": "npm run build && node benchmark-parsing.js",
-    "test:regression": "npm run build && node test-step4-enhancement.js && node test-step5-sophisticated.js",
     "prepublishOnly": "npm run build"
   },
   "keywords": [

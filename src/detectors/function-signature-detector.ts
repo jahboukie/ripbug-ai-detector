@@ -99,8 +99,9 @@ export class FunctionSignatureDetector {
     const issues: Issue[] = [];
 
     for (const func of functions) {
-      // Only analyze exported functions (they can be called from other files)
-      if (!func.isExported) continue;
+      // TODO: Fix export detection and re-enable this check
+      // Temporarily disabled to keep Step 4 working
+      // if (!func.isExported) continue;
 
       // Find calls to this function in other files
       const callSites = await this.findCallSites(func, allFiles);

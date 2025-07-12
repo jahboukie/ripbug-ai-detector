@@ -1,30 +1,30 @@
-# 🌊 Ripple AI Bug Detector
+# 🔥 RipBug AI Bug Detector
 
 **Catch AI-generated bugs before you commit them.**
 
-Ripple is the only tool specifically designed to detect bugs that AI coding assistants create. Built by an AI that knows its own limitations.
+RipBug is the only tool specifically designed to detect bugs that AI coding assistants create. Built by an AI that knows its own limitations.
 
 ## 🚀 Quick Start
 
 ```bash
 # Install globally
-npm install -g ripple-validator
+npm install -g ripbug-ai-detector
 
 # Initialize in your project
 cd your-project
-ripple init
+ripbug init
 
 # Analyze staged files
-ripple validate
+ripbug validate
 
 # Analyze specific files
-ripple validate src/components/Button.tsx src/utils/helpers.ts
+ripbug validate --files src/components/Button.tsx src/utils/helpers.ts
 
 # Analyze entire project
-ripple validate --all
+ripbug validate --all
 ```
 
-## 🎯 What Ripple Catches
+## 🎯 What RipBug Catches
 
 ### 1. Function Signature Changes
 ```bash
@@ -47,20 +47,20 @@ ripple validate --all
 
 ## 💰 Pricing
 
-- **Free**: 10 validations per month
+- **Free**: 50 validations per month
 - **Pro**: $49/month for unlimited validations
 - **Team**: $99/month with team dashboard
 
 ## 🔧 Commands
 
 ```bash
-ripple validate              # Analyze staged files
-ripple validate --all        # Analyze entire project
-ripple validate file1.ts     # Analyze specific files
-ripple init                  # Initialize configuration
-ripple auth login <key>      # Login with license key
-ripple auth status           # Check authentication
-ripple upgrade               # Upgrade to Pro
+ripbug validate                      # Analyze staged files
+ripbug validate --all                # Analyze entire project
+ripbug validate --files file1.ts     # Analyze specific files
+ripbug init                          # Initialize configuration
+ripbug auth login <key>              # Login with license key
+ripbug auth status                   # Check authentication
+ripbug upgrade                       # Upgrade to Pro
 ```
 
 ## ⚙️ Configuration

@@ -21,7 +21,7 @@ export async function upgradeCommand(): Promise<void> {
     }
 
     // Show upgrade benefits
-    logger.info('🚀 Ripple Pro Benefits:');
+    logger.info('🚀 RipBug Pro Benefits:');
     logger.info('  ✓ Unlimited AI bug validations');
     logger.info('  ✓ Priority email support');
     logger.info('  ✓ Early access to new features');
@@ -51,14 +51,14 @@ export async function upgradeCommand(): Promise<void> {
     logger.upgrade('Ready to upgrade?');
     
     if (status.authenticated && status.licenseKey) {
-      const upgradeUrl = `https://ripple.dev/upgrade?key=${status.licenseKey}`;
+      const upgradeUrl = `https://ripbug.dev/upgrade?key=${status.licenseKey}`;
       logger.info(`Visit: ${upgradeUrl}`);
     } else {
-      logger.info('Visit: https://ripple.dev/pricing');
+      logger.info('Visit: https://ripbug.dev/pricing');
     }
-    
+
     logger.newLine();
-    logger.tip('Questions? Email us at: support@ripple.dev');
+    logger.tip('Questions? Email us at: support@ripbug.dev');
 
   } catch (error) {
     logger.error(`Upgrade command failed: ${error instanceof Error ? error.message : 'Unknown error'}`);

@@ -1,9 +1,10 @@
 import { logger } from '../utils/logger';
 import { configManager } from '../config/config';
 import { GitManager } from '../git/git-manager';
-import { RippleAnalyzer } from '../analysis/analyzer';
+import { RipBugAnalyzer } from '../analysis/analyzer';
 import { UsageTracker } from '../usage/usage-tracker';
 import { OutputFormatter } from '../output/formatter';
+import path from 'path';
 
 interface ValidateOptions {
   format: 'console' | 'json';
@@ -30,7 +31,7 @@ export async function validateCommand(options: ValidateOptions): Promise<void> {
       logger.error(`Monthly validation limit reached (${usage.current}/${usage.limit})`);
       logger.money('You\'ve saved hours of debugging this month!');
       logger.upgrade('Upgrade to Pro for unlimited validations: $49/month');
-      logger.tip('Visit: https://ripple.dev/upgrade');
+      logger.tip('Visit: https://ripbug.dev/upgrade');
       process.exit(1);
     }
 
@@ -47,7 +48,26 @@ export async function validateCommand(options: ValidateOptions): Promise<void> {
     } else if (options.all) {
       // Analyze all files in project
       const gitManager = new GitManager();
+
+      if (options.format === 'console') {
+        logger.info('Searching for JavaScript/TypeScript files...');
+      }
+
       filesToAnalyze = await gitManager.getAllJSFiles();
+
+      // Debug: Show what files were found
+      if (options.format === 'console') {
+        logger.info(`Found ${filesToAnalyze.length} files in project`);
+        if (filesToAnalyze.length > 0) {
+          logger.info('Files found:');
+          filesToAnalyze.slice(0, 10).forEach(file => {
+            logger.info(`  - ${path.relative(process.cwd(), file)}`);
+          });
+          if (filesToAnalyze.length > 10) {
+            logger.info(`  ... and ${filesToAnalyze.length - 10} more`);
+          }
+        }
+      }
     } else {
       // Default: analyze staged files
       const gitManager = new GitManager();
@@ -68,13 +88,33 @@ export async function validateCommand(options: ValidateOptions): Promise<void> {
 
     if (filesToAnalyze.length === 0) {
       logger.warning('No JavaScript/TypeScript files to analyze');
+
+      // Show helpful debugging info
+      if (options.format === 'console') {
+        const cwd = process.cwd();
+        logger.info(`Current directory: ${cwd}`);
+
+        // Check if there are any files at all
+        try {
+          const allFiles = await require('fs').promises.readdir(cwd);
+          logger.info(`Files in directory: ${allFiles.length}`);
+          const jsFiles = allFiles.filter((f: string) => f.endsWith('.js') || f.endsWith('.ts') || f.endsWith('.jsx') || f.endsWith('.tsx'));
+          if (jsFiles.length > 0) {
+            logger.info(`JS/TS files found: ${jsFiles.join(', ')}`);
+          } else {
+            logger.tip('Try creating a test file: echo "console.log(\'test\');" > test.js');
+          }
+        } catch (error) {
+          logger.info('Could not read directory contents');
+        }
+      }
       return;
     }
 
     // Start analysis
     logger.startSpinner(`Analyzing ${filesToAnalyze.length} files...`);
 
-    const analyzer = new RippleAnalyzer(config);
+    const analyzer = new RipBugAnalyzer(config);
     const results = await analyzer.analyze(filesToAnalyze);
 
     logger.stopSpinner(true, `Analysis complete`);
@@ -94,7 +134,7 @@ export async function validateCommand(options: ValidateOptions): Promise<void> {
       
       // Show upgrade prompt if getting close to limit
       if (usage.current >= usage.limit * 0.8) {
-        logger.upgrade('Upgrade to Pro for unlimited validations: ripple.dev/pro');
+        logger.upgrade('Upgrade to Pro for unlimited validations: ripbug.dev/pro');
       }
     }
 

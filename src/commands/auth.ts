@@ -17,7 +17,7 @@ export const authCommand = {
       logger.info(`Validations: ${result.limits.currentUsage}/${result.limits.validationsPerMonth}`);
       
       if (result.user.plan === 'free') {
-        logger.tip('Upgrade to Pro for unlimited validations: ripple.dev/pro');
+        logger.tip('Upgrade to Pro for unlimited validations: ripbug.dev/pro');
       }
 
     } catch (error) {
@@ -46,12 +46,12 @@ export const authCommand = {
         }
 
         if (status.user?.plan === 'free') {
-          logger.tip('Upgrade to Pro: ripple.dev/pro');
+          logger.tip('Upgrade to Pro: ripbug.dev/pro');
         }
       } else {
         logger.warning('Not authenticated');
-        logger.tip('Login with: ripple auth login <license-key>');
-        logger.tip('Get a license: ripple.dev/pricing');
+        logger.tip('Login with: ripbug auth login <license-key>');
+        logger.tip('Get a license: ripbug.dev/pricing');
       }
 
     } catch (error) {

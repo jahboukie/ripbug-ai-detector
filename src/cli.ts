@@ -43,7 +43,7 @@ program
 // Initialize project
 program
   .command('init')
-  .description('Initialize Ripple in current project')
+  .description('Initialize RipBug in current project')
   .action(initCommand);
 
 // Authentication commands
@@ -76,7 +76,7 @@ program
 // Handle unknown commands
 program.on('command:*', () => {
   console.error(chalk.red(`Unknown command: ${program.args.join(' ')}`));
-  console.log(chalk.gray('Run "ripple --help" for available commands'));
+  console.log(chalk.gray('Run "ripbug --help" for available commands'));
   process.exit(1);
 });
 

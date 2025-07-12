@@ -2,7 +2,7 @@ import { cosmiconfigSync } from 'cosmiconfig';
 import path from 'path';
 import { FileUtils } from '../utils/file-utils';
 
-export interface RippleConfig {
+export interface RipBugConfig {
   // Analysis settings
   analysis: {
     languages: string[];
@@ -48,7 +48,7 @@ export interface RippleConfig {
   };
 }
 
-const DEFAULT_CONFIG: RippleConfig = {
+const DEFAULT_CONFIG: RipBugConfig = {
   analysis: {
     languages: ['javascript', 'typescript'],
     include: ['src/**/*.{js,ts,jsx,tsx}', '**/*.{js,ts,jsx,tsx}'],
@@ -98,13 +98,13 @@ const DEFAULT_CONFIG: RippleConfig = {
 
   usage: {
     trackingEnabled: true,
-    apiUrl: 'https://api.ripple.dev'
+    apiUrl: 'https://api.ripbug.dev'
   }
 };
 
 export class ConfigManager {
   private static instance: ConfigManager;
-  private config: RippleConfig;
+  private config: RipBugConfig;
   private configPath: string | null = null;
 
   private constructor() {
@@ -119,8 +119,8 @@ export class ConfigManager {
   }
 
   // Load configuration from file or use defaults
-  async loadConfig(searchFrom?: string): Promise<RippleConfig> {
-    const explorer = cosmiconfigSync('ripple');
+  async loadConfig(searchFrom?: string): Promise<RipBugConfig> {
+    const explorer = cosmiconfigSync('ripbug');
     const result = explorer.search(searchFrom);
 
     if (result) {
@@ -134,13 +134,13 @@ export class ConfigManager {
   }
 
   // Get current configuration
-  getConfig(): RippleConfig {
+  getConfig(): RipBugConfig {
     return this.config;
   }
 
   // Create default config file
   async createDefaultConfig(directory: string = process.cwd()): Promise<string> {
-    const configPath = path.join(directory, '.ripple.config.js');
+    const configPath = path.join(directory, '.ripbug.config.js');
     
     const configContent = `module.exports = ${JSON.stringify(DEFAULT_CONFIG, null, 2)};`;
     
@@ -149,7 +149,7 @@ export class ConfigManager {
   }
 
   // Update configuration
-  updateConfig(updates: Partial<RippleConfig>): void {
+  updateConfig(updates: Partial<RipBugConfig>): void {
     this.config = { ...this.config, ...updates };
   }
 
@@ -161,6 +161,11 @@ export class ConfigManager {
   // Check if config file exists
   async hasConfigFile(directory: string = process.cwd()): Promise<boolean> {
     const possiblePaths = [
+      path.join(directory, '.ripbug.config.js'),
+      path.join(directory, '.ripbug.config.json'),
+      path.join(directory, 'ripbug.config.js'),
+      path.join(directory, 'ripbug.config.json'),
+      // Legacy support for old ripple config files
       path.join(directory, '.ripple.config.js'),
       path.join(directory, '.ripple.config.json'),
       path.join(directory, 'ripple.config.js'),

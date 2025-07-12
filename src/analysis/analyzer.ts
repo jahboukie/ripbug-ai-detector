@@ -1,15 +1,15 @@
 import { AnalysisResult, Issue, AnalysisSummary, AnalysisMetadata } from '../types/analysis';
-import { RippleConfig } from '../config/config';
+import { RipBugConfig } from '../config/config';
 import { FunctionSignatureDetector } from '../detectors/function-signature-detector';
 import { AIDetector } from '../detectors/ai-detector';
 import { FileUtils } from '../utils/file-utils';
 
-export class RippleAnalyzer {
-  private config: RippleConfig;
+export class RipBugAnalyzer {
+  private config: RipBugConfig;
   private functionDetector: FunctionSignatureDetector;
   private aiDetector: AIDetector;
 
-  constructor(config: RippleConfig) {
+  constructor(config: RipBugConfig) {
     this.config = config;
     this.functionDetector = new FunctionSignatureDetector();
     this.aiDetector = new AIDetector();

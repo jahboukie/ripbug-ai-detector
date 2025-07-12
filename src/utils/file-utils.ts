@@ -64,12 +64,68 @@ export class FileUtils {
 
   // Get JavaScript/TypeScript files in directory
   static async getJSFiles(directory: string = process.cwd()): Promise<string[]> {
-    return this.findFiles([
-      '**/*.js',
-      '**/*.jsx', 
-      '**/*.ts',
-      '**/*.tsx'
-    ], directory);
+    try {
+      // Try glob first
+      const globFiles = await this.findFiles([
+        '**/*.js',
+        '**/*.jsx',
+        '**/*.ts',
+        '**/*.tsx'
+      ], directory);
+
+      // Always try manual search as well for comparison
+      const manualFiles = await this.findJSFilesManually(directory);
+
+      // Use whichever method found more files
+      if (globFiles.length >= manualFiles.length) {
+        return globFiles;
+      } else {
+        console.log(`Glob found ${globFiles.length} files, manual found ${manualFiles.length} files. Using manual search.`);
+        return manualFiles;
+      }
+
+    } catch (error) {
+      console.warn('Glob search failed, falling back to manual search:', error);
+      return await this.findJSFilesManually(directory);
+    }
+  }
+
+  // Manual file discovery fallback
+  static async findJSFilesManually(directory: string): Promise<string[]> {
+    const files: string[] = [];
+    const ignoreDirs = ['node_modules', 'dist', 'build', '.git', '.next', 'coverage'];
+
+    const traverse = async (dir: string, depth: number = 0): Promise<void> => {
+      try {
+        // Limit depth to prevent infinite recursion
+        if (depth > 10) return;
+
+        const entries = await fs.readdir(dir, { withFileTypes: true });
+
+        for (const entry of entries) {
+          const fullPath = path.join(dir, entry.name);
+
+          if (entry.isDirectory()) {
+            // Skip ignored directories
+            if (!ignoreDirs.includes(entry.name) && !entry.name.startsWith('.')) {
+              await traverse(fullPath, depth + 1);
+            }
+          } else if (entry.isFile()) {
+            // Check if it's a supported file
+            if (this.isSupportedFile(fullPath)) {
+              files.push(fullPath);
+            }
+          }
+        }
+      } catch (error) {
+        // Skip directories we can't read
+        console.warn(`Could not read directory ${dir}:`, error);
+      }
+    };
+
+    await traverse(directory);
+    console.log(`Manual search found ${files.length} JS/TS files in ${directory}`);
+    return files;
   }
 
   // Check if file is supported
