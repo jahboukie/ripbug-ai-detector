@@ -22,13 +22,16 @@ export interface Issue {
   confidence: number;
 }
 
-export type IssueType = 
+export type IssueType =
   | 'function-signature-change'
   | 'import-export-mismatch'
   | 'type-mismatch'
   | 'cascading-change'
   | 'test-break'
-  | 'ai-pattern-detected';
+  | 'ai-pattern-detected'
+  | 'MissingExport'
+  | 'SignatureMismatch'
+  | 'StaleReference';
 
 export interface IssueDetails {
   // Function signature changes
@@ -42,6 +45,7 @@ export interface IssueDetails {
   exportName?: string;
   modulePath?: string;
   availableExports?: string[];
+  isDefault?: boolean; // ✅ NEW
 
   // Type issues
   typeName?: string;
@@ -59,6 +63,16 @@ export interface IssueDetails {
   // General
   context?: string;
   codeSnippet?: string;
+  callSite?: string; // ✅ NEW
+
+    // Signature mismatch-specific
+  expectedArgs?: number;
+  actualArgs?: number;
+  totalParams?: number; // ✅ NEW
+  optionalParams?: number; // ✅ NEW for argument flexibility
+  functionDefinition?: string; // ✅ NEW
+  parameterSignature?: string; // ✅ NEW - e.g., "(name: string, qty: number)"
+
 }
 
 export interface AffectedFile {

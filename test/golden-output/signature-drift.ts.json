@@ -1,0 +1,10 @@
+{
+  "file": "signature-drift.ts",
+  "errors": [
+    {
+      "type": "SignatureMismatch",
+      "line": 6,
+      "message": "Function 'calculateInvoiceTotal' called with 1 argument, but expects 2."
+    }
+  ]
+}

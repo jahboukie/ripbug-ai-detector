@@ -1,0 +1,10 @@
+{
+  "file": "cascade-rename.ts",
+  "errors": [
+    {
+      "type": "StaleReference",
+      "line": 8,
+      "message": "Function 'getUserProfile' is called but is no longer defined in scope."
+    }
+  ]
+}

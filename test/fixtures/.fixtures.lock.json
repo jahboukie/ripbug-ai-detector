@@ -1,0 +1,5 @@
+{
+  "signature-drift.ts": "a2f709e191c8a137e743dd98a3ca4842cc437cd6518c25ae53f52bd787c16e03",
+  "import-mismatch.ts": "f84948d54c7526bec2771942f0f5a654d80bd172b77bed387e6625eeb00d42c1",
+  "cascade-rename.ts":  "0ca9fdc3f00f5b57219ada12ad18e232d83fbb4073ed74fe453e44e4c2c296c8"
+}

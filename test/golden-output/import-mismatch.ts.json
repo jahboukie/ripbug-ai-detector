@@ -1,0 +1,10 @@
+{
+  "file": "import-mismatch.ts",
+  "errors": [
+    {
+      "type": "MissingExport",
+      "line": 2,
+      "message": "Function 'createInvoice' is imported but not exported from './invoice'."
+    }
+  ]
+}

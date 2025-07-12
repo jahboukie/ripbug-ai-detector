@@ -586,7 +586,19 @@ class TreeSitterParser {
 
   private isExported(node: any): boolean {
     if (!node) return false;
-    return node.text && node.text.includes('export');
+
+    // Check if the node itself or its parent has export keyword
+    let current = node;
+    while (current) {
+      if (current.type === 'export_statement' ||
+          current.type === 'export_declaration' ||
+          (current.text && current.text.startsWith('export '))) {
+        return true;
+      }
+      current = current.parent;
+    }
+
+    return false;
   }
 
   private isAsync(node: any): boolean {

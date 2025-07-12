@@ -1,107 +1,67 @@
-import { AnalysisResult, Issue, AnalysisSummary, AnalysisMetadata } from '../types/analysis';
-import { RipBugConfig } from '../config/config';
-import { FunctionSignatureDetector } from '../detectors/function-signature-detector';
-import { AIDetector } from '../detectors/ai-detector';
+import { AnalysisResult, Issue, AnalysisSummary, AnalysisMetadata, FunctionInfo } from '../types/analysis';
+import { Detector } from '../types/detector';
+import { EnhancedASTParser } from './ast-parser-enhanced';
 import { FileUtils } from '../utils/file-utils';
 
 export class RipBugAnalyzer {
-  private config: RipBugConfig;
-  private functionDetector: FunctionSignatureDetector;
-  private aiDetector: AIDetector;
+  private parser: EnhancedASTParser;
 
-  constructor(config: RipBugConfig) {
-    this.config = config;
-    this.functionDetector = new FunctionSignatureDetector();
-    this.aiDetector = new AIDetector();
+  constructor(private detectors: Detector[]) {
+    this.parser = new EnhancedASTParser({
+      enableTreeSitter: true,
+      fallbackToRegex: true,
+      debugMode: false
+    });
   }
 
-  // Main analysis method
   async analyze(files: string[]): Promise<AnalysisResult> {
     const startTime = Date.now();
-    
-    // Filter and validate files
     const validFiles = await this.filterValidFiles(files);
-    
-    if (validFiles.length === 0) {
-      return this.createEmptyResult(startTime);
-    }
 
-    // Limit number of files to analyze
-    const filesToAnalyze = validFiles.slice(0, this.config.analysis.maxFiles);
-    
+    if (validFiles.length === 0) return this.createEmptyResult(startTime);
+
     const issues: Issue[] = [];
 
-    // Run function signature detection
-    if (this.config.rules.functionSignatureChange.enabled) {
-      const functionIssues = await this.functionDetector.detect(filesToAnalyze);
-      issues.push(...functionIssues);
-    }
+    // Parse functions for detectors that need them
+    const functions = await this.parseFunctionsFromFiles(validFiles);
 
-    // Run AI detection
-    let aiGenerated = false;
-    let aiConfidence = 0;
-    
-    if (this.config.aiDetection.enabled) {
-      const aiResult = await this.aiDetector.detect(filesToAnalyze);
-      aiGenerated = aiResult.isAIGenerated;
-      aiConfidence = aiResult.confidence;
-      
-      // Add AI detection as an issue if confidence is high
-      if (aiGenerated && aiConfidence > 0.7) {
-        issues.push({
-          id: `ai-detection-${Date.now()}`,
-          type: 'ai-pattern-detected',
-          severity: 'warning',
-          message: `AI-generated changes detected (${Math.round(aiConfidence * 100)}% confidence)`,
-          file: filesToAnalyze[0], // Primary file
-          details: {
-            aiPatterns: aiResult.patterns.map(p => p.type),
-            aiConfidence,
-            context: aiResult.reasoning.join('; ')
-          },
-          suggestions: [
-            'Review changes carefully before committing',
-            'Test all affected functionality',
-            'Consider running additional validation'
-          ],
-          confidence: aiConfidence
-        });
+    // Run all detectors
+    for (const detector of this.detectors) {
+      try {
+        const detectorIssues = await detector.detect(validFiles, functions);
+        issues.push(...detectorIssues);
+      } catch (error) {
+        console.warn(`Detector ${detector.constructor.name} failed:`, error);
       }
     }
 
     const endTime = Date.now();
-    
-    // Calculate overall confidence
-    const overallConfidence = this.calculateOverallConfidence(issues, aiConfidence);
-    
-    // Create summary
+
     const summary: AnalysisSummary = {
-      filesAnalyzed: filesToAnalyze.length,
+      filesAnalyzed: validFiles.length,
       errors: issues.filter(i => i.severity === 'error').length,
       warnings: issues.filter(i => i.severity === 'warning').length,
-      aiDetections: aiGenerated ? 1 : 0,
+      aiDetections: issues.filter(i => i.type === 'ai-pattern-detected').length,
       timeMs: endTime - startTime
     };
 
-    // Create metadata
     const metadata: AnalysisMetadata = {
-      version: '1.0.0',
+      version: '0.1',
       timestamp: new Date().toISOString(),
-      aiDetectionEnabled: this.config.aiDetection.enabled,
-      rulesUsed: this.getEnabledRules()
+      aiDetectionEnabled: false,
+      rulesUsed: this.detectors.map(d => d.constructor.name)
     };
 
     return {
-      success: issues.filter(i => i.severity === 'error').length === 0,
-      confidence: overallConfidence,
-      aiGenerated,
+      success: summary.errors === 0,
+      confidence: 1,
+      aiGenerated: false,
       issues,
       summary,
       metadata
     };
   }
 
-  // Filter files to only include valid, supported files
   private async filterValidFiles(files: string[]): Promise<string[]> {
     const validFiles: string[] = [];
 
@@ -111,86 +71,49 @@ export class RipBugAnalyzer {
         const isSupported = FileUtils.isSupportedFile(file);
         const shouldInclude = this.shouldIncludeFile(file);
 
-        // Check if file exists and is supported
-        if (exists && isSupported) {
-          // Check against include/exclude patterns
-          if (shouldInclude) {
-            validFiles.push(file);
-          }
+        if (exists && isSupported && shouldInclude) {
+          validFiles.push(file);
         }
-      } catch (error) {
-        // Skip files that can't be accessed
-      }
+      } catch {}
     }
 
     return validFiles;
   }
 
-  // Check if file should be included based on config patterns
   private shouldIncludeFile(file: string): boolean {
     const relativePath = FileUtils.getRelativePath(file);
-
-    // For MVP: Simple check for JS/TS files
     return relativePath.endsWith('.js') || relativePath.endsWith('.ts') ||
            relativePath.endsWith('.jsx') || relativePath.endsWith('.tsx');
   }
 
-  // Simple pattern matching (in production, use a proper glob library)
-  private matchesPattern(filePath: string, pattern: string): boolean {
-    // Handle {js,ts,jsx,tsx} syntax
-    let regexPattern = pattern;
-
-    // Expand {js,ts,jsx,tsx} to (js|ts|jsx|tsx)
-    regexPattern = regexPattern.replace(/\{([^}]+)\}/g, (match, group) => {
-      const options = group.split(',').map((s: string) => s.trim());
-      return `(${options.join('|')})`;
-    });
-
-    // Convert glob pattern to regex (order matters!)
-    regexPattern = regexPattern
-      .replace(/\*\*/g, '__DOUBLE_STAR__')  // Temporarily replace **
-      .replace(/\./g, '\\.')                // Escape dots first
-      .replace(/__DOUBLE_STAR__/g, '.*')    // Then replace ** with .*
-      .replace(/\*/g, '[^/]*');             // Finally replace single * with [^/]*
-
-    const regex = new RegExp(`^${regexPattern}$`);
-    return regex.test(filePath);
-  }
-
-  // Calculate overall confidence score
   private calculateOverallConfidence(issues: Issue[], aiConfidence: number): number {
-    if (issues.length === 0) {
-      return 0.95; // High confidence when no issues found
-    }
+    if (issues.length === 0) return 0.95;
 
-    // Average confidence of all issues
     const issueConfidences = issues.map(i => i.confidence);
     const avgIssueConfidence = issueConfidences.reduce((sum, conf) => sum + conf, 0) / issueConfidences.length;
-
-    // Combine with AI detection confidence
-    const combinedConfidence = (avgIssueConfidence + aiConfidence) / 2;
-
-    return Math.min(combinedConfidence, 0.99); // Cap at 99%
+    return Math.min((avgIssueConfidence + aiConfidence) / 2, 0.99);
   }
 
-  // Get list of enabled rules
-  private getEnabledRules(): string[] {
-    const rules: string[] = [];
+  private async parseFunctionsFromFiles(files: string[]): Promise<FunctionInfo[]> {
+    const allFunctions: FunctionInfo[] = [];
 
-    if (this.config.rules.functionSignatureChange.enabled) {
-      rules.push('function-signature-change');
-    }
-    if (this.config.rules.importExportMismatch.enabled) {
-      rules.push('import-export-mismatch');
-    }
-    if (this.config.rules.typeMismatch.enabled) {
-      rules.push('type-mismatch');
+    for (const file of files) {
+      try {
+        const fileInfo = await FileUtils.getFileInfo(file);
+        if (fileInfo.isJavaScript) {
+          const functions = this.parser.extractFunctions(fileInfo.content, file);
+          allFunctions.push(...functions);
+        }
+      } catch (error) {
+        console.warn(`Failed to parse functions from ${file}:`, error);
+      }
     }
 
-    return rules;
+    return allFunctions;
   }
 
-  // Create empty result when no files to analyze
+
+
   private createEmptyResult(startTime: number): AnalysisResult {
     return {
       success: true,
@@ -205,10 +128,10 @@ export class RipBugAnalyzer {
         timeMs: Date.now() - startTime
       },
       metadata: {
-        version: '1.0.0',
+        version: '0.1',
         timestamp: new Date().toISOString(),
-        aiDetectionEnabled: this.config.aiDetection.enabled,
-        rulesUsed: this.getEnabledRules()
+        aiDetectionEnabled: false,
+        rulesUsed: this.detectors.map(d => d.constructor.name)
       }
     };
   }

@@ -25,6 +25,14 @@ export interface RipBugConfig {
       enabled: boolean;
       severity: 'error' | 'warning';
     };
+    staleReferenceDetection: {
+      enabled: boolean;
+      severity: 'error' | 'warning';
+    };
+    signatureMismatch: {
+      enabled: boolean;
+      severity: 'error' | 'warning';
+    };
   };
 
   // AI detection settings
@@ -76,6 +84,14 @@ const DEFAULT_CONFIG: RipBugConfig = {
     typeMismatch: {
       enabled: true,
       severity: 'warning'
+    },
+    staleReferenceDetection: {
+      enabled: true,
+      severity: 'error'
+    },
+    signatureMismatch: {
+      enabled: true,
+      severity: 'error'
     }
   },
 
