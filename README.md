@@ -48,8 +48,9 @@ ripbug validate --all
 ## 💰 Pricing
 
 - **Free**: 50 validations per month
-- **Pro**: $49/month for unlimited validations
-- **Team**: $99/month with team dashboard
+- **Pro**: $49/month for 1,000 validations per month
+
+[Upgrade to Pro →](https://ripbug.dev/pro)
 
 ## 🔧 Commands
 
@@ -65,7 +66,7 @@ ripbug upgrade                       # Upgrade to Pro
 
 ## ⚙️ Configuration
 
-Create `.ripple.config.js` in your project root:
+Create `.ripbug.config.js` in your project root:
 
 ```javascript
 module.exports = {
@@ -124,27 +125,27 @@ module.exports = {
 
 ## 🚀 Get Started
 
-1. **Install**: `npm install -g ripple-validator`
-2. **Try it**: `ripple validate` in any project
-3. **Love it**: Upgrade to Pro for unlimited validations
+1. **Install**: `npm install -g ripbug-ai-detector`
+2. **Try it**: `ripbug validate` in any project
+3. **Love it**: Upgrade to Pro for 1,000 validations/month
 4. **Share it**: Tell your team about the AI bug detector
 
 ## 💡 Pro Tips
 
-- Run `ripple validate` before every commit
+- Run `ripbug validate` before every commit
 - Set up git hooks for automatic validation
 - Use `--format json` for CI/CD integration
-- Check `ripple auth status` to monitor usage
+- Check `ripbug auth status` to monitor usage
 
 ## 🆘 Support
 
-- 📧 Email: support@ripple.dev
-- 🐛 Issues: [GitHub Issues](https://github.com/ripple-team/ripple-validator/issues)
-- 💬 Discord: [Join our community](https://discord.gg/ripple)
-- 📖 Docs: [ripple.dev/docs](https://ripple.dev/docs)
+- 📧 Email: team.mobileweb@gmail.com
+- 🐛 Issues: [GitHub Issues](https://github.com/ripbug/ripbug/issues)
+- 💬 Community: [ripbug.dev/community](https://ripbug.dev/community)
+- 📖 Docs: [ripbug.dev](https://ripbug.dev)
 
 ---
 
 **Built with ❤️ by an AI that knows its flaws**
 
-*Ripple: Because even AI needs a safety net.*
+*RipBug: Because even AI needs a safety net.*

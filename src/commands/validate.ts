@@ -35,8 +35,8 @@ export async function validateCommand(options: ValidateOptions): Promise<void> {
       const usage = await usageTracker.getUsage();
       logger.error(`Monthly validation limit reached (${usage.current}/${usage.limit})`);
       logger.money('You\'ve saved hours of debugging this month!');
-      logger.upgrade('Upgrade to Pro for unlimited validations: $49/month');
-      logger.tip('Visit: https://ripbug.dev/upgrade');
+      logger.upgrade('Upgrade to Pro for 1000 validations/month: $49/month');
+      logger.tip('Visit: https://ripbug.dev/pro');
       process.exit(1);
     }
 
@@ -173,7 +173,7 @@ export async function validateCommand(options: ValidateOptions): Promise<void> {
       
       // Show upgrade prompt if getting close to limit
       if (usage.current >= usage.limit * 0.8) {
-        logger.upgrade('Upgrade to Pro for unlimited validations: ripbug.dev/pro');
+        logger.upgrade('Upgrade to Pro for 1000 validations/month: ripbug.dev/pro');
       }
     }
 

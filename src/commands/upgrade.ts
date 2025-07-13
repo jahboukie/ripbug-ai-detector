@@ -22,10 +22,9 @@ export async function upgradeCommand(): Promise<void> {
 
     // Show upgrade benefits
     logger.info('🚀 RipBug Pro Benefits:');
-    logger.info('  ✓ Unlimited AI bug validations');
+    logger.info('  ✓ 1,000 AI bug validations per month');
     logger.info('  ✓ Priority email support');
     logger.info('  ✓ Early access to new features');
-    logger.info('  ✓ Advanced AI detection algorithms');
     logger.newLine();
 
     // Show pricing
@@ -51,10 +50,10 @@ export async function upgradeCommand(): Promise<void> {
     logger.upgrade('Ready to upgrade?');
     
     if (status.authenticated && status.licenseKey) {
-      const upgradeUrl = `https://ripbug.dev/upgrade?key=${status.licenseKey}`;
+      const upgradeUrl = `https://ripbug.dev/pro?key=${status.licenseKey}`;
       logger.info(`Visit: ${upgradeUrl}`);
     } else {
-      logger.info('Visit: https://ripbug.dev/pricing');
+      logger.info('Visit: https://ripbug.dev/pro');
     }
 
     logger.newLine();

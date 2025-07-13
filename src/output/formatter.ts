@@ -209,16 +209,16 @@ export class OutputFormatter {
   // Create upgrade prompt message
   static createUpgradePrompt(current: number, limit: number): string {
     const remaining = limit - current;
-    
+
     if (remaining <= 0) {
-      return '🚀 Upgrade to Pro for unlimited validations: ripple.dev/pro';
+      return '🚀 Upgrade to Pro for 1000 validations/month: ripbug.dev/pro';
     }
-    
+
     if (remaining <= 2) {
-      return `⚠️  Only ${remaining} validations left this month. Upgrade: ripple.dev/pro`;
+      return `⚠️  Only ${remaining} validations left this month. Upgrade: ripbug.dev/pro`;
     }
-    
-    return `💡 ${remaining} validations remaining. Get unlimited: ripple.dev/pro`;
+
+    return `💡 ${remaining} validations remaining. Get 1000/month: ripbug.dev/pro`;
   }
 
   // Create value proposition message

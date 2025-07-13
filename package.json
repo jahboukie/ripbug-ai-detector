@@ -56,10 +56,10 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/ripple-team/ripple-validator.git"
+    "url": "git+https://github.com/ripbug/ripbug.git"
   },
-  "homepage": "https://ripple.dev",
+  "homepage": "https://ripbug.dev",
   "bugs": {
-    "url": "https://github.com/ripple-team/ripple-validator/issues"
+    "url": "https://github.com/ripbug/ripbug/issues"
   }
 }

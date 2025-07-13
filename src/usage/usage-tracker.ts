@@ -15,10 +15,10 @@ interface UsageData {
 export class UsageTracker {
   private usageFile: string;
   private defaultLimits = {
-    free: 50,
-    pro: -1, // unlimited
-    team: -1, // unlimited
-    enterprise: -1 // unlimited
+    free: 50,        // Free: 50 validations/month
+    pro: 1000,       // Pro: 1000 validations/month ($49/month)
+    team: -1,        // Team: unlimited (future plan)
+    enterprise: -1   // Enterprise: unlimited (future plan)
   };
 
   constructor() {
