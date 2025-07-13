@@ -140,7 +140,7 @@ module.exports = {
 ## 🆘 Support
 
 - 📧 Email: team.mobileweb@gmail.com
-- 🐛 Issues: [GitHub Issues](https://github.com/ripbug/ripbug/issues)
+- 🐛 Issues: [GitHub Issues](https://github.com/jahboukie/ripbug-ai-detector/issues)
 - 💬 Community: [ripbug.dev/community](https://ripbug.dev/community)
 - 📖 Docs: [ripbug.dev](https://ripbug.dev)
 
